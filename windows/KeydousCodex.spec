@@ -31,6 +31,7 @@ main_exe = EXE(
     [],
     exclude_binaries=True,
     name="KeydousCodex",
+    icon=str(windows_root.parent / "app/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png"),
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

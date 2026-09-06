@@ -14,6 +14,16 @@ from keydous_bridge.pets import _find_codex_asar
 
 
 class PlatformTests(unittest.TestCase):
+    def test_desktop_profile_failure_is_reported_and_releases_owner(self):
+        from keydous_bridge.__main__ import main
+        app, server, owner = Mock(), Mock(), Mock()
+        with patch("sys.platform","win32"), patch("keydous_bridge.app.BridgeApp",return_value=app), patch("keydous_bridge.server.BridgeServer",return_value=server), patch("keydous_bridge.instance.HardwareOwner",return_value=owner), patch("keydous_bridge.desktop.run_desktop",side_effect=FileExistsError("profile path is a file")), patch("keydous_bridge.__main__.report_error") as report:
+            self.assertEqual(main([]),1)
+        report.assert_called_once()
+        app.close.assert_called_once()
+        server.server_close.assert_called_once()
+        owner.close.assert_called_once()
+
     def test_failed_start_and_failed_app_close_still_release_owner_and_signal(self):
         from keydous_bridge.__main__ import main
         app, server, owner = Mock(), Mock(), Mock()

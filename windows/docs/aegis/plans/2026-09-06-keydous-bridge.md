@@ -67,3 +67,8 @@ Mac 无可用实机：共同 Python/Web 与打包入口已实现，原生组件�
 
 
 2026-09-06 原生源码最终复核：有界规格复核和独立质量审查通过。修复权限/退出释放、所有权与 readiness 分离、未确认销毁时关闭客户端、错误后重新启用、IPC 总超时；Release/NDEBUG 下两个可移植测试仍实际执行并通过。完整 Mac 规格和实机验收未通过，Caps LED 与共享驱动升级缺口保持明确记录。此次本地保存和 Windows 0.2.0 打包不代表双平台任务全部完成；下一步需要真实 Mac 签名构建与设备验收。
+
+
+2026-09-06 Windows 桌面化 Slice：用户要求独立 Windows app，不再以浏览器作为默认界面。TaskStartSnapshot=main/6edc80c，Git干净，0.2.0后台PID96384运行，用户数据位于windows/data。改动必要性：现启动入口仅webbrowser.open，不能满足桌面窗口使用方式。沿用同一业务/HTTP协议，默认Windows使用pywebview/WebView2原生窗口，保留--no-browser作为无窗口验收入口；新增--browser仅显式兼容旧Web用法。关闭窗口/页面退出/启动失败都必须回收服务、恢复RGB并释放互斥。界面沿用现有资源，新增桌面布局。文件范围desktop.py、__main__.py、web、依赖/打包、tests、README/ADR；Mac输入和键盘协议不变。TDD off，实施后运行生命周期mock、真实桌面EXE窗口/关闭、冻结Hook隔离验收。产物0.3.0，默认启动独立桌面窗口，不自动回退浏览器。
+
+2026-09-06 0.3.0 桌面化交付检查点：pywebview/WebView2 独立窗口、原版 Keyphore 图标、窗口布局、原生保存对话框与重复启动激活已实现。有界独立源码复核通过；84 项 Python 测试中 83 通过、1 项可选真实测试跳过，Node 回归通过；真实 Windows 会话的 Verify-Desktop.py 渲染/设置/导出/API退出通过，Verify-DesktopPackage.py 发布EXE窗口/单实例/WM_CLOSE通过，Verify-Package.py冻结Hook真实隔离生命周期通过。用户旧程序已正常退出，0.3.0桌面EXE启动PID99560，原生窗口标题Keyphore · Keydous、health0.3.0、Responding=True。工作区新增 Keyphore Keydous.lnk，沿用 windows/data；未更改真实Hook信任。只读检查当前用户配置pet=bsod-35b2815c、rgb=false，未覆盖用户保存的配置。桌面化范围完成；Mac实机、原生动态屏幕和其他型号仍按acceptance.md记录，不宣称完成。

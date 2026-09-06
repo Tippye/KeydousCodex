@@ -15,3 +15,14 @@ On 2026-09-06 the user approved extending this same Keydous application to macOS
 Windows/Web UI now follows the original compact state panel and grouped settings workflow, retaining explicit reviewed Hook consent. Firmware mapping uses exact NJ98 identity, single-key operations, full checked preimages, and complete readback/restoration. Host Fn is a separate native input responsibility and does not change firmware mappings. The HTTP process stays unprivileged; native control authenticates callers and permits bounded configuration only.
 
 Windows RGB idle restores captured original settings, a deliberate hardware-specific departure from upstream NuPhy signal-off behavior because a separate Keydous lighting profile has not been established. The record survives interrupted restoration. Hook review and consent remain explicit, and affect only this port's plugin and owned hook keys.
+
+On 2026-09-06 the user requested an independent Windows application. Version 0.3.0
+defaults to a pywebview/WebView2 native window with the shared HTML UI. The existing
+loopback server remains internal and retains its access checks; there is no new
+hardware owner or privileged JavaScript bridge. The GUI imports lazily, keeping
+the Hook executable independent of .NET initialization. Native close, API quit,
+and failed startup converge on application cleanup and RGB restoration. A second
+launch activates the existing window. Explicit `--browser` preserves the requested
+Web usage and `--no-browser` supports headless acceptance. Missing WebView2 is a
+visible startup error rather than a browser fallback. This decision does not
+constitute macOS native-component acceptance.

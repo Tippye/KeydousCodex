@@ -1,7 +1,7 @@
 # Keydous Codex Bridge for Windows
 
 这是基于 [Keyphore](https://github.com/BarryBarrywu/Keyphore) 的 Windows
-适配版，版本 `0.2.0`。它是一个独立的第三方本地桥接程序：主程序提供浏览器控制台，
+适配版，版本 `0.3.0`。它是一个独立的第三方 Windows 桌面应用：主程序提供独立窗口，
 通过官方 Keydous IoT 驱动的本机服务（`127.0.0.1:3814`）访问键盘；可选的
 Codex 插件只负责把任务生命周期事件交给桥接程序。它不是 Keydous 官方驱动，也不是
 官方驱动的插件。
@@ -12,6 +12,8 @@ Codex 插件只负责把任务生命周期事件交给桥接程序。它不是 K
 提供任意协议命令入口。
 
 ## 已实现的功能
+
+0.3.0 默认使用 WebView2 桌面窗口承载同一套界面，无浏览器地址栏，无需打开浏览器。支持窗口缩放、原生下载保存对话框、重复启动激活已有窗口；关闭窗口会停止主服务、恢复已启用联动的 RGB，并释放设备所有权。外观偏好保存在应用数据目录的 `desktop-profile` 中。
 
 0.2.0 将界面调整为 Keyphore 原版的紧凑状态首页和分组设置流程：齿轮进入显示、设备、集成、改键及通用设置。Windows 和浏览器使用同一套界面，支持跟随系统/浅色/深色。Keydous 的屏幕预览和改键是新增内容；原版 NuPhy 专用灯效不冒充 Keydous 功能。
 
@@ -39,8 +41,12 @@ Hook 的 `Stop` 表示一轮结束，不代表任务目标已成功。`Permissio
 
 ## 安装和启动
 
-需要 Windows 10/11、Python 3.12，以及已安装并正在运行的 Keydous IoT 驱动。请先
-让官方驱动能够正常识别 NJ98。
+需要 Windows 10/11、Microsoft Edge WebView2 Runtime，以及已安装并正在运行的
+Keydous IoT 驱动。发布的 EXE 已包含 Python，无需另外安装 Python。请先让官方驱动
+能够正常识别 NJ98。源码运行和构建才需要 Python 3.12。
+
+下载 Windows ZIP 后先完整解压，双击文件夹内的 `KeydousCodex.exe`；不要仅复制 EXE，
+同目录的 `_internal` 与 Hook 程序也需要保留。
 
 源码方式：
 
@@ -51,8 +57,9 @@ cd Keyphore\windows
 ```
 
 已有构建产物时，双击 `Start-Bridge.cmd` 或直接运行
-`dist\KeydousCodex\KeydousCodex.exe`。程序只监听本机回环地址，并在浏览器中打开控制
-界面。它不会注册开机启动。
+`dist\KeydousCodex\KeydousCodex.exe`。程序直接显示 Windows 桌面窗口，内部服务只监听
+本机回环地址。右上角关闭按钮或设置中的退出会结束主程序；它不会注册开机启动。
+只有明确传入 `--browser` 才打开旧浏览器界面，`--no-browser` 用于无窗口运行和自动验收。
 
 首次使用建议按以下顺序操作：
 
@@ -118,7 +125,7 @@ Move-Item -LiteralPath $state -Destination $backup
 node tests\test_web_state.js
 ```
 
-以上使用 Setup.ps1 创建的目录内虚拟环境；本工作区若复用顶层虚拟环境，则将 Python 路径替换为 `..\..\.venv\Scripts\python.exe`。完整验收边界见 [docs/acceptance.md](docs/acceptance.md)。构建后可运行 `python Verify-Package.py`，在隔离 Codex 配置中复验打包程序；请先退出正在运行的桥接程序。
+以上使用 Setup.ps1 创建的目录内虚拟环境；本工作区若复用顶层虚拟环境，则将 Python 路径替换为 `..\..\.venv\Scripts\python.exe`。完整验收边界见 [docs/acceptance.md](docs/acceptance.md)。在交互式 Windows 用户会话中运行 `python Verify-Desktop.py` 验证真实 WebView2 渲染和页面退出，构建后运行 `python Verify-DesktopPackage.py` 验证 EXE 窗口、重复启动和关闭。`python Verify-Package.py` 在隔离 Codex 配置中复验冻结 Hook 生命周期；请先退出正在运行的桥接程序。
 
 构建完整发布包：
 
@@ -133,12 +140,12 @@ node tests\test_web_state.js
 
 ```text
 dist\KeydousCodex\
-release\KeydousCodex-0.2.0-windows-x64.zip
-release\KeydousCodex-0.2.0-source.zip
-release\KeydousCodex-0.2.0-SHA256SUMS.txt
+release\KeydousCodex-0.3.0-windows-x64.zip
+release\KeydousCodex-0.3.0-source.zip
+release\KeydousCodex-0.3.0-SHA256SUMS.txt
 ```
 
-二进制包带有 GPLv3、Python、Pillow 和 PyInstaller 许可证原文；对应源码包包含本次
+二进制包带有 GPLv3、Python、Pillow、PyInstaller 和桌面组件许可证原文；对应源码包包含本次
 构建所需的完整仓库源码与上游测试夹具，排除 `.git`、虚拟环境、运行数据、构建目录、
 缓存和生成的压缩包。
 

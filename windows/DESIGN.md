@@ -1,6 +1,6 @@
 # Codex Pet → Keydous 屏幕适配方案
 
-状态：Windows 0.2.0 实现与验收中，具体证据见 `docs/acceptance.md`；原有记录包含 work 动画的用户目视确认，原生状态层和动态切页仍未验证。2026-09-06 用户已批准同一程序内的 Windows/macOS 与 Mac Fn 改键架构，并要求尽量保持原版 Keyphore UI 和使用方式。独立本地桥接程序，复用官方 IoT 驱动。
+状态：Windows 0.3.0 默认独立 WebView2 桌面窗口，具体证据见 `docs/acceptance.md`；原有记录包含 work 动画的用户目视确认，原生状态层和动态切页仍未验证。2026-09-06 用户已批准同一程序内的 Windows/macOS 与 Mac Fn 改键架构，并要求尽量保持原版 Keyphore UI 和使用方式。独立本地桥接程序，复用官方 IoT 驱动。
 
 后续用户指定基于 [Keyphore](https://github.com/BarryBarrywu/Keyphore) 实现。以提交 `9ca11f275809ebc2649bf365effdee8cc7682084` 为基线，将 Windows/Keydous 实现放在其 `windows/` 目录；复用八类 Hook 与持久状态核心的语义，替代日志输入作为推荐状态来源。原有日志输入保留为明确选定文件的辅助模式。平台差异记录在 `../docs/adr/0009-add-windows-keydous-port.md`。
 

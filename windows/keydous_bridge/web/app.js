@@ -982,6 +982,9 @@ async function copyDiagnostics() {
 }
 
 async function init() {
+  if (new URLSearchParams(window.location.search).get("desktop") === "1") {
+    document.documentElement.dataset.host = "desktop";
+  }
   setAppearance(savedAppearance(), false);
   bindEvents();
   try {

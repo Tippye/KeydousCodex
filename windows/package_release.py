@@ -63,6 +63,12 @@ def prepare_notices() -> None:
     shutil.copyfile(python_license, NOTICE_ROOT / "PYTHON-LICENSE.txt")
     _copy_distribution_license("Pillow", "PILLOW-LICENSE.txt")
     _copy_distribution_license("pyinstaller", "PYINSTALLER-COPYING.txt")
+    if sys.platform == "win32":
+        for name in ("pywebview", "bottle", "typing_extensions", "cffi", "pycparser", "setuptools"):
+            _copy_distribution_license(name, name.upper().replace("_", "-") + "-LICENSE.txt")
+        for name in ("PROXY-TOOLS-LICENSE.txt", "WEBVIEW2-SDK-LICENSE.txt", "PYTHONNET-LICENSE.txt", "CLR-LOADER-LICENSE.txt"):
+            shutil.copyfile(WINDOWS_ROOT / "licenses" / name, NOTICE_ROOT / name)
+
 
 
 def _source_files() -> list[Path]:
@@ -110,8 +116,8 @@ def _stage_release_documents() -> None:
     document_root.mkdir(parents=True, exist_ok=True)
     for name in ("acceptance.md", "protocol-research.md", "codex-research.md"):
         shutil.copyfile(WINDOWS_ROOT / "docs" / name, document_root / name)
-    for name in ("PYTHON-LICENSE.txt", "PILLOW-LICENSE.txt", "PYINSTALLER-COPYING.txt"):
-        source = NOTICE_ROOT / name
+    for source in sorted(NOTICE_ROOT.glob("*.txt")):
+        name = source.name
         if not source.is_file():
             raise RuntimeError(f"Prepared third-party license is missing: {source}")
         shutil.copyfile(source, third_party_root / name)

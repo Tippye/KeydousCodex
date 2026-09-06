@@ -1,6 +1,6 @@
 # Windows Keydous UI parity
 
-The Windows browser UI follows the interaction hierarchy of the original macOS Keyphore application rather than its platform chrome.
+The Windows desktop and optional browser UI follow the interaction hierarchy of the original macOS Keyphore application. Since 0.3.0, Windows starts an independent WebView2 window by default, using the original Keyphore application icon.
 
 ## Source mapping
 
@@ -19,5 +19,5 @@ The Windows browser UI follows the interaction hierarchy of the original macOS K
 - The Mapping group exposes only server-provided control labels and action tokens. Opening it performs a fresh full-matrix read. A single write requires an explicit Apply action carrying the read revision; any rejected, stale, malformed, or unavailable response invalidates the editor until another successful read. Raw four-byte mapping values are never displayed or editable.
 - Mapping restore is enabled only when the server reports a recovery snapshot for the selected device. The UI does not claim success if read, apply, or restore is unavailable.
 - Unknown connection type, battery, lock state, capabilities, and mapping values remain labeled unknown. Missing data is never converted into a supported/ready state.
-- Appearance is browser-local and supports system, light, and dark. The Windows packaged application's browser console and Web access use the same HTML/CSS/JavaScript. The original SwiftUI views are the design reference; SwiftUI code is not embedded into the browser.
+- Appearance supports system, light, and dark. The Windows desktop host persists its WebView2 profile under the application data directory. Desktop and explicit Web access share HTML/CSS/JavaScript; the desktop layout fills the resizable native client area. The original SwiftUI views are the design reference, not compiled Windows controls.
 - Hook consent, hardware writes, RGB changes, mapping changes, shutdown, and mapping restore keep explicit user actions. Merely opening or connecting the UI does not install Hooks, upload a screen, change RGB, or write a key mapping.

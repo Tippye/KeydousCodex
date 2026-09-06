@@ -72,6 +72,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .popover-view { max-width: 392px; padding: 24px; }
 .settings-view { max-width: 520px; min-height: min(680px, calc(100vh - 56px)); background: var(--settings); }
 
+/* The desktop window supplies the frame; the shared UI fills its client area. */
+:root[data-host="desktop"] .app-shell { padding: 0; min-height: 100vh; }
+:root[data-host="desktop"] .popover-view,
+:root[data-host="desktop"] .settings-view {
+  max-width: none; min-height: 100vh; border: 0; border-radius: 0; box-shadow: none;
+}
+:root[data-host="desktop"] .popover-view { padding: 30px; }
+:root[data-host="desktop"] .screen-shell { width: 100%; }
+:root[data-host="desktop"] .settings-scroll { height: calc(100vh - 130px); }
+
 .app-header, .settings-header, .device-summary, .bridge-state, .form-row, .info-row,
 .capability-row, .mapping-head, .about-card, .hook-status-row {
   display: flex; align-items: center;

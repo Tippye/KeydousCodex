@@ -25,7 +25,9 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Codex Pet → Keydous 本地桥接")
     parser.add_argument("--data-dir", type=Path, default=data_directory(), help="配置和导入宠物保存目录")
     parser.add_argument("--port", type=int, default=47698, help="本机页面端口；0 自动分配")
-    parser.add_argument("--no-browser", action="store_true")
+    ui_mode = parser.add_mutually_exclusive_group()
+    ui_mode.add_argument("--no-browser", action="store_true", help="无窗口运行，供后台模式和自动验收使用")
+    ui_mode.add_argument("--browser", action="store_true", help="显式使用旧浏览器控制台")
     parser.add_argument("--diagnose", action="store_true", help="只读列举 IoT 设备并退出")
     parser.add_argument("--hook", action="store_true", help="读取一个 Codex Hook，只保存状态，不控制硬件")
     args = parser.parse_args(argv)
@@ -57,6 +59,10 @@ def main(argv=None) -> int:
     try:
         owner = HardwareOwner()
     except OSError as exc:
+        if sys.platform == "win32" and not args.no_browser and not args.browser:
+            from .desktop import activate_existing_window
+            if activate_existing_window():
+                return 0
         report_error(str(exc))
         return 1
     app = None
@@ -69,7 +75,7 @@ def main(argv=None) -> int:
                 app.close()
         finally:
             owner.close()
-        message = f"无法启动本地页面：{exc}\n程序可能已在运行，请打开 http://127.0.0.1:{args.port}"
+        message = f"无法启动应用服务：{exc}\n程序可能已在运行，请先关闭原程序再启动。"
         report_error(message)
         return 1
     previous_signal = None
@@ -82,9 +88,17 @@ def main(argv=None) -> int:
         app.start()
         if sys.stdout:
             print(server.url, flush=True)
-        if not args.no_browser:
-            webbrowser.open(server.url)
-        server.serve_forever(poll_interval=0.25)
+        if sys.platform == "win32" and not args.no_browser and not args.browser:
+            from .desktop import run_desktop
+            try:
+                run_desktop(server, app, args.data_dir)
+            except (RuntimeError, OSError) as exc:
+                report_error(str(exc))
+                return 1
+        else:
+            if not args.no_browser:
+                webbrowser.open(server.url)
+            server.serve_forever(poll_interval=0.25)
     except KeyboardInterrupt:
         pass
     finally:
