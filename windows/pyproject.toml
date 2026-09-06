@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keydous-codex-bridge"
+version = "0.2.0"
+description = "Local Codex pet bridge using the official Keydous IoT driver"
+license = "GPL-3.0-only"
+requires-python = ">=3.12"
+dependencies = ["Pillow==12.3.0"]
+
+[project.scripts]
+keydous-bridge = "keydous_bridge.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["keydous_bridge*"]
+
+[tool.setuptools.package-data]
+keydous_bridge = ["web/*"]

@@ -1,0 +1,4 @@
+.deps/
+.cmake-build/
+build/
+stage/

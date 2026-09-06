@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+build/
+dist/
+*.spec
+!KeydousCodex.spec
+!KeydousCodexMac.spec
+build-notices/
+release/
+*.egg-info/
