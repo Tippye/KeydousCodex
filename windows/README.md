@@ -1,7 +1,7 @@
 # Keydous Codex Bridge for Windows
 
 这是基于 [Keyphore](https://github.com/BarryBarrywu/Keyphore) 的 Windows
-适配版，版本 `0.3.1`。它是一个独立的第三方 Windows 桌面应用：主程序提供独立窗口，
+适配版，版本 `0.3.2`。它是一个独立的第三方 Windows 桌面应用：主程序提供独立窗口，
 通过官方 Keydous IoT 驱动的本机服务（`127.0.0.1:3814`）访问键盘；可选的
 Codex 插件只负责把任务生命周期事件交给桥接程序。它不是 Keydous 官方驱动，也不是
 官方驱动的插件。
@@ -13,7 +13,9 @@ Codex 插件只负责把任务生命周期事件交给桥接程序。它不是 K
 
 ## 已实现的功能
 
-0.3.1 在设置 → 改键增加 **Codex 旋钮**。读取 NJ98 后启用：普通层左转切换上一个任务/标签，右转切换下一个任务/标签，按下聚焦已打开的 Codex 窗口。Windows 热键服务使用 Ctrl+F9/F10/F11，旋转转发 Codex 默认 Ctrl+PageUp/PageDown；其他键盘按相同组合也会触发。当前按 Windows 安装包的 OpenAI.Codex 应用身份识别窗口，不支持未打包的桌面开发版。自定义过 Codex 导航快捷键时需恢复这两个默认绑定。
+0.3.2 将旋钮按下改为显示／隐藏切换：Codex 在前台时最小化到任务栏，后台或已最小化时恢复并聚焦。左右旋转继续先聚焦再导航，不会最小化。沿用现有旋钮映射，无需再次改写键盘。
+
+0.3.1 在设置 → 改键增加 **Codex 旋钮**。读取 NJ98 后启用：普通层左转切换上一个任务/标签，右转切换下一个任务/标签，按下控制已打开的 Codex 窗口。Windows 热键服务使用 Ctrl+F9/F10/F11，旋转转发 Codex 默认 Ctrl+PageUp/PageDown；其他键盘按相同组合也会触发。当前按 Windows 安装包的 OpenAI.Codex 应用身份识别窗口，不支持未打包的桌面开发版。自定义过 Codex 导航快捷键时需恢复这两个默认绑定。
 
 启用前检查热键冲突，持久化旋钮三个动作的原值与完整矩阵，再逐项写入和整体读回。“恢复旋钮”只恢复这三个普通层动作，保留其他改键；中断或外部修改会保留恢复记录。退出仅释放 Windows 热键，键盘映射仍保留，需保持应用运行；下次启动根据备份重新启动热键服务，不自动写设备。Fn 层不属于此预设。界面显示本次运行的动作计数；计数表示快捷键已发出/窗口已聚焦，不证明 Codex 已切换任务。
 
@@ -144,9 +146,9 @@ node tests\test_web_state.js
 
 ```text
 dist\KeydousCodex\
-release\KeydousCodex-0.3.1-windows-x64.zip
-release\KeydousCodex-0.3.1-source.zip
-release\KeydousCodex-0.3.1-SHA256SUMS.txt
+release\KeydousCodex-0.3.2-windows-x64.zip
+release\KeydousCodex-0.3.2-source.zip
+release\KeydousCodex-0.3.2-SHA256SUMS.txt
 ```
 
 二进制包带有 GPLv3、Python、Pillow、PyInstaller 和桌面组件许可证原文；对应源码包包含本次

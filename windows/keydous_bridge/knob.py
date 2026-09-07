@@ -12,7 +12,7 @@ import threading
 import time
 
 HOTKEYS = {1: (0x78, "previous"), 2: (0x79, "next"), 3: (0x7A, "focus")}
-LABELS = {"previous": "上一个任务", "next": "下一个任务", "focus": "唤起 Codex"}
+LABELS = {"previous": "上一个任务", "next": "下一个任务", "focus": "显示／隐藏 Codex"}
 
 
 class WindowsKnob:
@@ -80,12 +80,18 @@ class WindowsKnob:
         self.user.EnumWindows(visit, 0)
         return windows
 
-    def focus(self):
+    def focus(self, toggle=False):
         windows = self.codex_windows()
         if not windows:
             raise OSError("未找到已打开的 Codex 桌面窗口，请先打开 Codex")
         foreground = self.user.GetForegroundWindow()
         target = foreground if foreground in windows else windows[0]
+        if toggle and foreground == target and not self.user.IsIconic(target):
+            # Minimize instead of SW_HIDE: the window remains discoverable and accessible in the taskbar.
+            self.user.ShowWindow(target, 6)
+            if not self.user.IsIconic(target):
+                raise OSError("Codex 窗口未能最小化，请重试")
+            return None
         if self.user.IsIconic(target):
             self.user.ShowWindow(target, 9)
         if foreground != target:
@@ -95,7 +101,11 @@ class WindowsKnob:
     def dispatch(self, action, stopped):
         if action not in LABELS:
             raise ValueError("未知旋钮动作")
-        target = self.focus()
+        if stopped.is_set():
+            raise OSError("旋钮服务正在停止")
+        target = self.focus(toggle=action == "focus")
+        if target is None:
+            return
         deadline = time.monotonic() + 0.4
         # Let the firmware's Ctrl/function-key pair release; never force-release a user's keys.
         keys = (0x10, 0x11, 0x12, 0x5B, 0x5C, 0x78, 0x79, 0x7A)

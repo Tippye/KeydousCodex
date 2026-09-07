@@ -73,6 +73,53 @@ class KnobTests(unittest.TestCase):
         backend.dispatch("next", threading.Event())
         backend.dispatch("focus", threading.Event())
         self.assertEqual([call.args for call in backend.send_navigation.call_args_list], [(42, 0x21), (42, 0x22)])
+        self.assertEqual([call.kwargs for call in backend.focus.call_args_list],
+                         [{"toggle": False}, {"toggle": False}, {"toggle": True}])
+
+    def window_backend(self, foreground=42, minimized=False):
+        backend = WindowsKnob.__new__(WindowsKnob)
+        backend.codex_windows = Mock(return_value=[42, 43])
+        backend.user = Mock()
+        backend.user.GetForegroundWindow.return_value = foreground
+        backend.user.IsIconic.return_value = minimized
+        backend.send_navigation = Mock()
+        return backend
+
+    def test_press_minimizes_foreground_codex_without_navigation(self):
+        backend = self.window_backend(foreground=43)
+        backend.user.IsIconic.side_effect = [False, True]
+        backend.dispatch("focus", threading.Event())
+        backend.user.ShowWindow.assert_called_once_with(43, 6)
+        backend.user.SetForegroundWindow.assert_not_called()
+        backend.send_navigation.assert_not_called()
+
+    def test_press_restores_minimized_codex(self):
+        backend = self.window_backend(foreground=99, minimized=True)
+        self.assertEqual(backend.focus(toggle=True), 42)
+        backend.user.ShowWindow.assert_called_once_with(42, 9)
+        backend.user.SetForegroundWindow.assert_called_once_with(42)
+
+    def test_background_visible_codex_is_focused_not_minimized(self):
+        backend = self.window_backend(foreground=99)
+        self.assertEqual(backend.focus(toggle=True), 42)
+        backend.user.ShowWindow.assert_not_called()
+        backend.user.SetForegroundWindow.assert_called_once_with(42)
+
+    def test_rotation_does_not_minimize_foreground_window(self):
+        backend = self.window_backend()
+        self.assertEqual(backend.focus(), 42)
+        backend.user.ShowWindow.assert_not_called()
+
+    def test_failed_minimize_and_shutdown_do_not_report_success(self):
+        backend = self.window_backend()
+        with self.assertRaisesRegex(OSError, "最小化"):
+            backend.dispatch("focus", threading.Event())
+        backend.user.ShowWindow.reset_mock()
+        stopped = threading.Event()
+        stopped.set()
+        with self.assertRaisesRegex(OSError, "停止"):
+            backend.dispatch("focus", stopped)
+        backend.user.ShowWindow.assert_not_called()
 
     def test_focus_failure_and_held_modifier_never_send_navigation(self):
         backend = WindowsKnob.__new__(WindowsKnob)
