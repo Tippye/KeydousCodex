@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from keydous_bridge.iot import Device, IoTClient
-from keydous_bridge.mapping import CONTROLS, FN, MappingService, action_token
+from keydous_bridge.mapping import CONTROLS, FN, KNOB_ACTIONS, MappingService, action_token
 
 D = Device("fixture", 1021, 12625, 16405, "USB", True)
 
@@ -122,6 +122,66 @@ class MappingTests(unittest.TestCase):
         other = Device("other",1021,12625,16405,"USB",True)
         with self.assertRaises(ValueError):
             self.service.restore(other)
+
+    def test_knob_restore_preserves_other_mapping_and_fn_layer(self):
+        self.change()
+        before = dict(self.client.matrices)
+        configured = self.service.configure_knob(D, self.service.read(D)["revision"])
+        self.assertTrue(configured["knob_configured"])
+        self.assertEqual(self.client.matrices["fn"], before["fn"])
+        for slot, action in KNOB_ACTIONS.items():
+            self.assertEqual(self.client.matrices["normal"][slot*4:slot*4+4], action_token(action))
+        with self.assertRaises(ValueError):
+            self.change(slot=102)
+        self.change(slot=12)
+        before["normal"] = before["normal"][:48] + action_token("key:5") + before["normal"][52:]
+        restored = self.service.restore_knob(D)
+        self.assertFalse(restored["knob_configured"])
+        self.assertEqual(self.client.matrices, before)
+
+    def test_interrupted_knob_transaction_restores_only_knob_after_restart(self):
+        self.change()
+        before = dict(self.client.matrices)
+        self.client.fail_after_write = True
+        with self.assertRaises(OSError):
+            self.service.configure_knob(D, self.service.read(D)["revision"])
+        self.client.fail_after_write = False
+        restarted = MappingService(self.client, Path(self.tmp.name), self.stop)
+        self.assertTrue(restarted.knob_saved())
+        restarted.restore_knob(D)
+        self.assertEqual(self.client.matrices, before)
+
+    def test_knob_conflict_and_stale_revision_do_not_write(self):
+        before = self.service.read(D)
+        self.change()
+        with self.assertRaises(ValueError):
+            self.service.configure_knob(D, before["revision"])
+        self.service.configure_knob(D, self.service.read(D)["revision"])
+        self.client.matrices["fn"] = b'\x07' + self.client.matrices["fn"][1:]
+        count = len(self.client.writes)
+        with self.assertRaises(ValueError):
+            self.service.restore_knob(D)
+        self.assertEqual(len(self.client.writes), count)
+
+    def test_repeated_enable_preserves_knob_preimage(self):
+        original = dict(self.client.matrices)
+        for _ in range(2):
+            self.service.configure_knob(D, self.service.read(D)["revision"])
+        self.assertEqual(len(self.client.writes), 3)
+        self.service.restore_knob(D)
+        self.assertEqual(self.client.matrices, original)
+
+    def test_interrupted_selective_restore_can_resume_after_restart(self):
+        original = dict(self.client.matrices)
+        self.service.configure_knob(D, self.service.read(D)["revision"])
+        self.client.fail_after_write = True
+        with self.assertRaises(OSError):
+            self.service.restore_knob(D)
+        self.client.fail_after_write = False
+        restarted = MappingService(self.client, Path(self.tmp.name), self.stop)
+        restarted.restore_knob(D)
+        self.assertEqual(self.client.matrices, original)
+        self.assertFalse(restarted.knob_saved())
 
     def test_length_preserving_backup_corruption_rejected(self):
         self.change()

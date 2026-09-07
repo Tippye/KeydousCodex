@@ -65,6 +65,24 @@ vm.runInContext(`
   assert.equal($('mapping-action-select').disabled,false);
   assert.match($('mapping-current-action').textContent,/NEW/);
 
+  ui.status = {knob:{supported:true,running:false,counts:{}},iot:{connected:true}};
+  renderMapping(mapping);
+  renderKnob();
+  assert.equal($('knob-enable').disabled,false);
+  api = async (route, request) => {
+    assert.equal(route,'/api/mapping/knob-enable');
+    assert.equal(request.body.revision,7);
+    return {...mapping,knob_configured:true};
+  };
+  await configureKnob();
+  assert.equal($('knob-restore').disabled,false);
+  assert.equal(ui.mappingBusy,false);
+  api = async () => {throw new Error('interrupted knob write');};
+  await configureKnob(true);
+  assert.equal($('knob-enable').disabled,true);
+  assert.equal(ui.mapping,null);
+  assert.match($('mapping-feedback').textContent,/interrupted knob write/);
+
   ui.status = {state:'working',source:'hooks',validity:'observed',summary:{execution:2},iot:{connected:true},device:{key:'test',online:true,capabilities:{rgb:true,upload:true}}};
   ui.config = {device_key:'test'};
   $('device-select').value = 'edited-device';

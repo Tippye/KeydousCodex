@@ -26,3 +26,14 @@ launch activates the existing window. Explicit `--browser` preserves the request
 Web usage and `--no-browser` supports headless acceptance. Missing WebView2 is a
 visible startup error rather than a browser fallback. This decision does not
 constitute macOS native-component acceptance.
+
+On 2026-09-06 the user requested Codex shortcuts on the NJ98 knob first. The
+Windows app owns three RegisterHotKey bindings (Ctrl+F9/F10/F11); firmware
+emits these from the normal-layer rotary/push slots. The existing mapping
+transaction persists the three preimages and verifies both complete layers.
+Selective knob restoration preserves other mappings. The same process focuses
+the installed OpenAI.Codex window and sends default navigation shortcuts; no
+desktop RPC ownership, arbitrary commands, or keyboard logging are introduced.
+Hotkeys live only while the app runs; firmware mappings persist and the journal
+allows service restart and explicit restoration. Real firmware readback and a
+native input fixture are verified separately from physical rotation/Codex UI.

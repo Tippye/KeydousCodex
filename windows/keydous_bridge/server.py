@@ -145,7 +145,8 @@ class Handler(BaseHTTPRequestHandler):
                 result = {"ok": True}
             elif path == "/api/rgb/restore":
                 result = app.restore_rgb()
-            elif path in {"/api/mapping/read", "/api/mapping/apply", "/api/mapping/restore"}:
+            elif path in {"/api/mapping/read", "/api/mapping/apply", "/api/mapping/restore",
+                          "/api/mapping/knob-enable", "/api/mapping/knob-restore"}:
                 result = app.key_mapping(path.rsplit("/", 1)[1], data)
             elif path == "/api/macos-fn/status":
                 if app.stop.is_set():

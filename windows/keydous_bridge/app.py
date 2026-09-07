@@ -19,6 +19,7 @@ from .hook_core import HookStore
 from .integration import Integration
 from .mapping import MappingService
 from .macos_fn import MacFnController
+from .knob import KnobController
 
 
 def locks() -> dict:
@@ -41,6 +42,7 @@ class BridgeApp:
         self.stop = threading.Event()
         self.mapping = MappingService(self.client, directory, self.stop)
         self.mac_fn = MacFnController(directory)
+        self.knob = KnobController()
         self.cancel = threading.Event()
         self.devices = []
         self.iot = {"connected": False, "error": "尚未连接"}
@@ -73,6 +75,11 @@ class BridgeApp:
 
     def start(self):
         self.mac_fn.start()
+        try:
+            if self.knob.supported and self.mapping.knob_saved():
+                self.knob.start()
+        except (OSError, ValueError) as exc:
+            self.notice = "旋钮快捷操作未启动：" + str(exc)
         self.worker = threading.Thread(target=self._work, name="bridge-monitor", daemon=True)
         self.worker.start()
 
@@ -136,7 +143,8 @@ class BridgeApp:
             return {**self.source_status, "state": self.state, "device": device.public() if device else None,
                     "devices": [item.public() for item in self.devices], "locks": locks(),
                     "iot": dict(self.iot), "upload": dict(self.upload), "notice": self.notice,
-                    "rgb": self.rgb.snapshot(), "integration": self.integration.status(), "macos_fn": self.mac_fn.snapshot()}
+                    "rgb": self.rgb.snapshot(), "integration": self.integration.status(), "macos_fn": self.mac_fn.snapshot(),
+                    "knob": self.knob.snapshot()}
 
     def bootstrap(self) -> dict:
         with self.lock:
@@ -273,7 +281,25 @@ class BridgeApp:
                 if operation == "apply":
                     return self.mapping.apply(device, request)
                 if operation == "restore":
-                    return self.mapping.restore(device)
+                    result = self.mapping.restore(device)
+                    self.knob.close()
+                    return result
+                if operation == "knob-enable":
+                    if set(request) != {"revision"}:
+                        raise ValueError("请先读取当前旋钮配置")
+                    self.knob.start()
+                    try:
+                        return self.mapping.configure_knob(device, request["revision"])
+                    except Exception:
+                        if not self.mapping.knob_saved():
+                            self.knob.close()
+                        raise
+                if operation == "knob-restore":
+                    if request:
+                        raise ValueError("恢复旋钮不接受额外参数")
+                    result = self.mapping.restore_knob(device)
+                    self.knob.close()
+                    return result
                 raise ValueError("未知改键操作")
 
     def sessions(self) -> list[dict]:
@@ -281,12 +307,14 @@ class BridgeApp:
 
     def begin_close(self):
         self.stop.set()
+        self.knob.stop.set()
         self.mac_fn.begin_close()
         self.integration.cancelled.set()
         self.cancel.set()
 
     def close(self):
         self.begin_close()
+        self.knob.close()
         self.mac_fn.close()  # Independent from potentially busy firmware/RGB operations.
         if self.upload_worker and self.upload_worker.ident is not None:
             self.upload_worker.join(timeout=12)

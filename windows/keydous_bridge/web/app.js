@@ -253,6 +253,7 @@ function renderStatus(status) {
   document.querySelectorAll("#state-buttons button").forEach((button) => button.classList.toggle("active", button.dataset.state === state));
 
   const caps = device?.capabilities || {};
+  renderKnob();
   triState("cap-upload-icon", "cap-upload-text", caps.upload, "支持写入用户动画槽", "此型号或当前连接尚未验证上传");
   triState("cap-overlay-icon", "cap-overlay-text", caps.native_overlay, "保留固件状态信息", "原生状态层尚未验证或未启用");
   triState("cap-dynamic-icon", "cap-dynamic-text", caps.dynamic_screen, "可实时刷新屏幕", "程序目前只提供手动屏幕上传");
@@ -489,7 +490,40 @@ function invalidateMapping(message) {
   $("mapping-action-select").disabled = true;
   $("mapping-apply-button").disabled = true;
   $("mapping-restore-button").disabled = true;
+  renderKnob();
   if (message) setMappingFeedback(message, true);
+}
+
+function renderKnob() {
+  const status = ui.status?.knob || {};
+  $("knob-section").hidden = !status.supported;
+  const unavailable = ui.mappingBusy || !ui.mapping || !ui.status?.iot?.connected || Boolean(ui.status?.upload?.active);
+  $("knob-enable").disabled = unavailable || !status.supported || Boolean(ui.mapping?.pending) || Boolean(ui.mapping?.knob_configured && status.running);
+  $("knob-restore").disabled = unavailable || !ui.mapping?.knob_configured;
+  const counts = status.counts || {};
+  setText("knob-status", status.error || `${status.running ? "热键服务运行中" : "热键服务未运行"} · 左转 ${counts.previous || 0} · 右转 ${counts.next || 0} · 按下 ${counts.focus || 0}${status.last_action ? " · 最近：" + status.last_action : ""}`);
+}
+
+async function configureKnob(restore = false) {
+  if (ui.mappingBusy || !ui.mapping) return;
+  ui.mappingBusy = true;
+  renderKnob();
+  $("mapping-read-button").disabled = true;
+  setMappingFeedback(restore ? "正在恢复旋钮…" : "正在配置旋钮并校验键盘…");
+  try {
+    const snapshot = await api(restore ? "/api/mapping/knob-restore" : "/api/mapping/knob-enable", {
+      method: "POST", body: restore ? {} : {revision: ui.mapping.revision}
+    });
+    renderMapping(snapshot);
+    setMappingFeedback(restore ? "旋钮原有三个动作已恢复，其他改键保留。" : "旋钮已配置。请左转、右转、按下，检查 Codex 反应和触发计数。");
+  } catch (error) {
+    invalidateMapping(error.message);
+  } finally {
+    ui.mappingBusy = false;
+    $("mapping-read-button").disabled = false;
+    if (ui.mapping) renderMapping(ui.mapping);
+    renderKnob();
+  }
 }
 
 function mappingLabel(slot) {
@@ -501,6 +535,7 @@ function mappingLabel(slot) {
 function renderMapping(snapshot) {
   if (!validMappingSnapshot(snapshot)) throw new Error("键位映射数据不完整，已停止编辑");
   ui.mapping = snapshot;
+  renderKnob();
   const controls = snapshot.controls;
   if (!controls.some((item) => item.slot === ui.mappingSlot)) ui.mappingSlot = null;
   setText("mapping-device", snapshot.device_key);
@@ -815,6 +850,8 @@ function bindEvents() {
   });
   $("hook-install-button").addEventListener("click", installReviewedHooks);
   $("mapping-read-button").addEventListener("click", readMapping);
+  $("knob-enable").addEventListener("click", () => configureKnob());
+  $("knob-restore").addEventListener("click", () => configureKnob(true));
   document.querySelectorAll("#mapping-bank-selector button").forEach((button) => {
     button.addEventListener("click", () => {
       ui.mappingBank = button.dataset.bank === "fn" ? "fn" : "normal";

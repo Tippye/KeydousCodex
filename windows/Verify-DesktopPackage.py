@@ -53,7 +53,7 @@ with tempfile.TemporaryDirectory(prefix="run-",dir=parent,ignore_cleanup_errors=
             time.sleep(.1)
         assert handle, "No native desktop window appeared"
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/health",timeout=10) as response:
-            assert json.load(response)["version"] == "0.3.0"
+            assert json.load(response)["version"] == "0.3.1"
         duplicate = subprocess.run(args,timeout=10,creationflags=subprocess.CREATE_NO_WINDOW)
         assert duplicate.returncode == 0, "Duplicate launch must activate the first window"
         assert process.poll() is None and own_window(process.pid)

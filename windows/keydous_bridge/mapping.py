@@ -12,6 +12,7 @@ from pathlib import Path
 import threading
 
 BANKS = ("normal", "fn")
+KNOB_ACTIONS = {109: "combo:224:66", 110: "combo:224:67", 102: "combo:224:68"}
 FN = bytes([10, 1, 0, 0])
 # Physical matrix identities from VN resolved against IHe, not screen positions.
 ROWS = (
@@ -105,6 +106,11 @@ class MappingService:
                 raise ValueError()
             if not isinstance(data["identity"], dict) or set(data["identity"]) != {"path","vid","pid","id","connection"}:
                 raise ValueError()
+            if "knob_original" in data:
+                if set(data["knob_original"]) != {str(s) for s in KNOB_ACTIONS}:
+                    raise ValueError()
+                if any(len(bytes.fromhex(v)) != 4 for v in data["knob_original"].values()):
+                    raise ValueError()
             return data
         except (OSError, ValueError, KeyError, TypeError):
             raise ValueError("改键恢复记录损坏；请保留文件，不能覆盖或继续写入") from None
@@ -126,6 +132,7 @@ class MappingService:
                 **{bank+"_labels": [label_for(raw[i:i+4]) for i in range(0,512,4)] for bank,raw in matrices.items()},
                 "controls": CONTROLS, "actions": [{"id": key, "label": value[0]} for key,value in ACTIONS.items()],
                 "recovery": record is not None and record["device_key"] == device.key,
+                "knob_configured": bool(record and record["device_key"] == device.key and "knob_original" in record),
                 "pending": bool(record and record["pending"])}
 
     def read(self, device):
@@ -139,9 +146,15 @@ class MappingService:
         if bank not in BANKS or type(slot) is not int or slot not in SLOTS:
             raise ValueError("请选择 NJ98 可见按键和有效层")
         token = action_token(request["action"])
+        record = self._load()
+        if record and "knob_original" in record and bank == "normal" and slot in KNOB_ACTIONS:
+            raise ValueError("请先恢复 Codex 旋钮，再单独修改这三个动作")
+        return self._apply_changes(device, request["revision"], {(bank, slot): token})
+
+    def _apply_changes(self, device, expected_revision, changes, knob=False):
         with self.client.lock:
             current = self._read(device)
-            if request["revision"] != revision(device.key, current):
+            if expected_revision != revision(device.key, current):
                 raise ValueError("键盘配置已变化，请重新读取后再应用")
             record = self._load()
             if record and (record["device_key"] != device.key or record["identity"] != self._identity(device) or record["pending"]):
@@ -149,24 +162,67 @@ class MappingService:
             if record and any(bytes.fromhex(record["expected"][b]) != current[b] for b in BANKS):
                 raise ValueError("键盘被其他工具修改；原始恢复记录已保留，请先处理冲突")
             target = dict(current)
-            target[bank] = current[bank][:slot*4] + token + current[bank][slot*4+4:]
-            if target == current:
+            for (bank, slot), token in changes.items():
+                target[bank] = target[bank][:slot*4] + token + target[bank][slot*4+4:]
+            if target == current and not knob:
                 return self._public(device, current)
-            if bank == "normal" and FN not in [target[bank][i:i+4] for i in range(0,512,4)]:
+            if FN not in [target["normal"][i:i+4] for i in range(0,512,4)]:
                 raise ValueError("请至少保留一个键盘 Fn 键，以便使用键盘内部功能")
             before = {b: raw.hex() for b,raw in current.items()}
             record = record or {"version":1, "device_key":device.key, "identity":self._identity(device), "original":before}
-            record.update(previous=before, expected={b: raw.hex() for b,raw in target.items()}, pending=True)
-            self._save(record)  # Persist before the first possibly successful hardware write.
-            if self.cancelled.is_set():
-                raise InterruptedError("操作已停止，恢复记录已保留")
-            self.client.write_key(device, bank, slot, token)
-            actual = self._read(device)
-            if actual != target:
-                raise OSError("改键读回不一致，已停止；请使用恢复原始按键配置")
-            record["pending"] = False
-            self._save(record)
-            return self._public(device, actual)
+            if knob and "knob_original" not in record:
+                record["knob_original"] = {str(s): current["normal"][s*4:s*4+4].hex() for s in KNOB_ACTIONS}
+            return self._commit(device, current, target, record)
+
+    def _commit(self, device, current, target, record, clear_knob=False):
+        before = {b: raw.hex() for b, raw in current.items()}
+        record.update(previous=before, expected={b: raw.hex() for b,raw in target.items()}, pending=True)
+        self._save(record)  # Persist before the first possibly successful hardware write.
+        if self.cancelled.is_set():
+            raise InterruptedError("操作已停止，恢复记录已保留")
+        for bank in BANKS:
+            for slot in range(128):
+                part = slice(slot*4, slot*4+4)
+                if current[bank][part] != target[bank][part]:
+                    if self.cancelled.is_set():
+                        raise InterruptedError("操作已停止，恢复记录已保留")
+                    self.client.write_key(device, bank, slot, target[bank][part])
+        actual = self._read(device)
+        if actual != target:
+            raise OSError("改键读回不一致，已停止；请使用恢复原始按键配置")
+        record["pending"] = False
+        if clear_knob:
+            record.pop("knob_original", None)
+        self._save(record)
+        return self._public(device, actual)
+
+    def configure_knob(self, device, expected_revision):
+        return self._apply_changes(device, expected_revision,
+                                   {("normal", s): action_token(a) for s, a in KNOB_ACTIONS.items()}, knob=True)
+
+    def knob_saved(self):
+        record = self._load()
+        return bool(record and "knob_original" in record)
+
+    def restore_knob(self, device):
+        with self.client.lock:
+            record = self._load()
+            if not record or "knob_original" not in record or record["device_key"] != device.key or record["identity"] != self._identity(device):
+                raise ValueError("当前设备没有 Codex 旋钮备份")
+            current = self._read(device)
+            target = dict(current)
+            for bank in BANKS:
+                for slot in range(128):
+                    part = slice(slot*4, slot*4+4)
+                    allowed = {bytes.fromhex(record["expected"][bank])[part]}
+                    if record["pending"]:
+                        allowed.add(bytes.fromhex(record["previous"][bank])[part])
+                    if current[bank][part] not in allowed:
+                        raise ValueError("检测到其他工具改键，请先处理冲突；旋钮备份已保留")
+            for key, raw in record["knob_original"].items():
+                slot = int(key)
+                target["normal"] = target["normal"][:slot*4] + bytes.fromhex(raw) + target["normal"][slot*4+4:]
+            return self._commit(device, current, target, record, clear_knob=True)
 
     def restore(self, device):
         with self.client.lock:

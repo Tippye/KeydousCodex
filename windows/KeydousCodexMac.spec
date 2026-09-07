@@ -18,6 +18,6 @@ hook = EXE(pyz,a.scripts,[],exclude_binaries=True,name="KeydousCodexHook",consol
            argv_emulation=False,target_arch=None,codesign_identity=identity)
 collection = COLLECT(main,hook,a.binaries,a.datas,name="KeydousCodex")
 app = BUNDLE(collection,name="KeydousCodex.app",bundle_identifier="com.keydous.codex",
-             info_plist={"CFBundleDisplayName":"Keyphore 路 Keydous","CFBundleShortVersionString":"0.3.0",
+             info_plist={"CFBundleDisplayName":"Keyphore 路 Keydous","CFBundleShortVersionString":"0.3.1",
                          "LSMinimumSystemVersion":"13.0","NSHighResolutionCapable":True,
                          "NSInputMonitoringUsageDescription":"Map a selected Keydous keyboard key to Fn/Globe."})

@@ -73,6 +73,18 @@ class AppServerTests(unittest.TestCase):
         self.assertIsNone(self.app.integration._rpc)
         self.assertFalse(self.app.integration.status()["trusted"])
 
+    def test_knob_hotkey_conflict_prevents_firmware_write_and_requires_token(self):
+        device = Device("fixture", 1021, 12625, 16405, "USB", True)
+        self.app.devices = [device]
+        with patch.object(self.app.client, "discover", return_value=[device]), \
+             patch.object(self.app.knob, "start", side_effect=OSError("hotkey conflict")), \
+             patch.object(self.app.mapping, "configure_knob") as write:
+            status, _, _ = self.request("/api/mapping/knob-enable", {"revision": "test"})
+            self.assertEqual(status, 503)
+            write.assert_not_called()
+            self.assertEqual(self.request("/api/mapping/knob-enable", {"revision": "test"},
+                                          {"X-Bridge-Token": "wrong"})[0], 403)
+
     def test_shutdown_rejects_queued_mutations_and_does_not_wait_for_control_forever(self):
         held, release = threading.Event(), threading.Event()
         def operation():

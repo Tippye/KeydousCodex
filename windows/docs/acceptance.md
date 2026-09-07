@@ -1,5 +1,17 @@
 # Windows NJ98 验收记录 · 2026-09-06
 
+## 0.3.1 Windows 旋钮验收（2026-09-06）
+
+- TaskStartSnapshot：`06db6ae`，工作区干净。用户要求优先适配旋钮并测试。改动范围为普通层三个旋钮动作、应用内 Windows 热键、设置入口和测试；未修改真实 Hook 信任、屏幕资源或灯光设置。
+- `Verify-KnobDevice.py` 已在 NJ98 USB 上通过写入、完整读回、恢复测试，退出码 0。设备 key `ed87f4d711cc30cc`；只修改普通层槽 109/110/102，从音量减/音量加/静音改为 Ctrl+F9/F10/F11。finally 后两层 512 字节均与测试前一致。证据保存在 `data/knob-device-acceptance/result.json`。
+- `Verify-KnobHost.py` 使用真实 RegisterHotKey、Windows 消息和 SendInput，在独立 Tk 测试窗口接收三次热键，收到两次导航组合；退出后可重新注册全部热键。退出码 0，证据保存在 `data/knob-host-acceptance/result.json`。测试仅替换目标窗口查找，不操作 Codex 界面。
+- 生产窗口查找函数在交互桌面只读识别出当前 OpenAI.Codex 安装包窗口，返回句柄与 Windows 工具枚举一致。该结果不等同于 Codex 任务导航验收。
+- Python 94 项测试：93 通过、1 项可选真实生命周期跳过。覆盖部分写入丢响应、恢复仅影响旋钮、保留 Fn 与其他改键、重复启用、外部冲突、热键冲突释放和焦点/修饰键阻止输入。Node 界面回归通过，包括新入口与失败后停止编辑。
+- 0.3.1 EXE 构建成功；`Verify-DesktopPackage.py` 原生窗口、单实例、关闭流程通过，退出码 0。
+- `Verify-Package.py` 冻结 EXE 的隔离 Hook 生命周期与退出通过，退出码 0。2026-09-07 新版桌面应用已用现有 `windows/data` 启动，真实 API 启用旋钮后 `knob_configured=true`、`pending=false`，三个槽位再次读回匹配。正常退出并重启后热键服务自动恢复；可见设置页展示运行状态和恢复入口。启动时使用可见窗口模式；隐藏启动会隐藏原生界面，不作为日常桌面启动方式。
+- 尚待用户实际左转、右转、按下，确认固件确实产生对应组合键、Codex 的导航及窗口聚焦符合预期。热键计数只表示软件路径成功，不代表物理旋钮或 Codex 页面已经验收。当前证据等级 B（软件/读回）；完整端到端验收待确认。
+- 复杂度控制：设备写入仍由 MappingService/IoTClient 单一所有者管理，单键与旋钮复用同一事务写入函数和恢复日志；新增 knob.py 只负责 Windows 输入生命周期。未引入通用脚本执行器、键盘记录器或独立常驻服务。
+
 ## 0.3.0 Windows 桌面窗口验收
 
 - Windows 默认启动独立 WebView2 窗口，复用现有界面和用户配置；无自动浏览器回退。
