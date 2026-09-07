@@ -9,8 +9,8 @@ if exist ".venv\Scripts\pythonw.exe" (
   start "" ".venv\Scripts\pythonw.exe" "run_bridge.py"
   exit /b 0
 )
-if exist "..\..\.venv\Scripts\pythonw.exe" (
-  start "" "..\..\.venv\Scripts\pythonw.exe" "run_bridge.py"
+if exist "..\.venv\Scripts\pythonw.exe" (
+  start "" "..\.venv\Scripts\pythonw.exe" "run_bridge.py"
   exit /b 0
 )
 echo Python environment not found. Run Setup.ps1 first.

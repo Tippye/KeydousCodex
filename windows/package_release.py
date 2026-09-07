@@ -77,6 +77,9 @@ def _source_files() -> list[Path]:
         if not path.is_file():
             continue
         relative = path.relative_to(REPO_ROOT)
+        # Local workspace material is not application source after flattening.
+        if relative.parts[0] in {"research", "exports"} or path.suffix.lower() == ".lnk":
+            continue
         if any(part in EXCLUDED_PARTS for part in relative.parts):
             continue
         if relative.parts[:2] == ("windows", "release"):

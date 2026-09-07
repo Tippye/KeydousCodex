@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 
 if ([string]::IsNullOrWhiteSpace($Python)) {
-    $workspacePython = Join-Path $PSScriptRoot '..\..\.venv\Scripts\python.exe'
+    $workspacePython = Join-Path $PSScriptRoot '..\.venv\Scripts\python.exe'
     $localPython = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
     if (Test-Path -LiteralPath $workspacePython) {
         $Python = (Resolve-Path -LiteralPath $workspacePython).Path

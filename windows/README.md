@@ -65,10 +65,10 @@ Keydous IoT 驱动。发布的 EXE 已包含 Python，无需另外安装 Python�
 下载 Windows ZIP 后先完整解压，双击文件夹内的 `KeydousCodex.exe`；不要仅复制 EXE，
 同目录的 `_internal` 与 Hook 程序也需要保留。
 
-源码方式：
+源码方式（从仓库顶层运行）：
 
 ```powershell
-cd Keyphore\windows
+cd windows
 .\Setup.ps1
 .\Start-Bridge.cmd
 ```
@@ -143,7 +143,7 @@ Move-Item -LiteralPath $state -Destination $backup
 node tests\test_web_state.js
 ```
 
-以上使用 Setup.ps1 创建的目录内虚拟环境；本工作区若复用顶层虚拟环境，则将 Python 路径替换为 `..\..\.venv\Scripts\python.exe`。完整验收边界见 [docs/acceptance.md](docs/acceptance.md)。在交互式 Windows 用户会话中运行 `python Verify-Desktop.py` 验证真实 WebView2 渲染和页面退出，构建后运行 `python Verify-DesktopPackage.py` 验证 EXE 窗口、重复启动和关闭。`python Verify-Package.py` 在隔离 Codex 配置中复验冻结 Hook 生命周期；请先退出正在运行的桥接程序。
+以上使用 Setup.ps1 创建的目录内虚拟环境；本工作区若复用顶层虚拟环境，则将 Python 路径替换为 `..\.venv\Scripts\python.exe`。完整验收边界见 [docs/acceptance.md](docs/acceptance.md)。在交互式 Windows 用户会话中运行 `python Verify-Desktop.py` 验证真实 WebView2 渲染和页面退出，构建后运行 `python Verify-DesktopPackage.py` 验证 EXE 窗口、重复启动和关闭。`python Verify-Package.py` 在隔离 Codex 配置中复验冻结 Hook 生命周期；请先退出正在运行的桥接程序。
 
 构建完整发布包：
 

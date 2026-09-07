@@ -1,2 +1,11 @@
 .DS_Store
 /target/
+
+# Local workspace environments and user artifacts
+/.venv/
+/exports/
+/research/
+/*.lnk
+__pycache__/
+*.pyc
+.pytest_cache/
