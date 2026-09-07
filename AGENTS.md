@@ -1,4 +1,22 @@
-## Agent skills
+# Repository scope
+
+This is a fork of BarryBarrywu/Keyphore. Keep upstream attribution and GPL notices.
+The Windows Keydous NJ98 port lives in `windows/`; `macos/` contains experimental
+Keydous native input components. The original NuPhy app/runtime and shared test
+fixtures remain maintained source, not disposable legacy files. Read `CONTEXT.md`
+and `docs/adr/0009-add-windows-keydous-port.md` for platform boundaries.
+
+For Windows changes, follow `windows/README.md`, `windows/DESIGN.md` and
+`windows/docs/acceptance.md`. Run the relevant Python tests; UI changes also use
+`node tests/test_web_state.js` from `windows/`. Hardware claims require device
+evidence. Screen uploads are manual snapshots/animations, not real-time Codex sync.
+
+Keep generated caches, build outputs and release archives out of Git. Preserve
+runtime data, imported resources and device recovery backups during cleanup.
+Check references before removing assets or source. Do not publish fork work to
+the upstream issue tracker or remote unless the user requests that destination.
+
+## Agent skills (upstream conventions)
 
 ### Issue tracker
 
@@ -12,7 +30,7 @@ Use the five default triage labels. See `docs/agents/triage-labels.md`.
 
 This is a single-context repository. See `docs/agents/domain.md`.
 
-### Keyphore development acceptance
+### Upstream NuPhy development acceptance (macOS)
 
 Before opening a development build or running physical keyboard acceptance, use
 `tools/keyphore-development-app build-open`. It installs the current build at the stable

@@ -1,7 +1,8 @@
 # Keydous Codex Bridge for Windows
 
-这是基于 [Keyphore](https://github.com/BarryBarrywu/Keyphore) 的 Windows
-适配版，版本 `0.3.2`。它是一个独立的第三方 Windows 桌面应用：主程序提供独立窗口，
+本项目 fork 自 [BarryBarrywu/Keyphore](https://github.com/BarryBarrywu/Keyphore)，
+增加 Windows + Keydous（键斗士）NJ98 适配，当前版本 `0.3.2`。上游主要面向 macOS
+与 NuPhy 键盘。本 fork 是一个独立的第三方 Windows 桌面应用：主程序提供独立窗口，
 通过官方 Keydous IoT 驱动的本机服务（`127.0.0.1:3814`）访问键盘；可选的
 Codex 插件只负责把任务生命周期事件交给桥接程序。它不是 Keydous 官方驱动，也不是
 官方驱动的插件。
@@ -10,6 +11,16 @@ Codex 插件只负责把任务生命周期事件交给桥接程序。它不是 K
 部分其他型号，但不会对它们写屏幕或灯光。NJ98 的实际协议参数为 `160×80` RGB565；
 动画上传到用户明确选择的 GIF 槽位 1–3，每个动画最多 50 帧。程序不刷写固件，也不
 提供任意协议命令入口。
+
+## 屏幕同步限制
+
+**受 Keydous NJ98 屏幕上传方式和刷新速度限制，当前无法让键盘屏幕与 Codex 状态实时同步。**
+完整图像／动画的传输和写入耗时，不适合频繁刷新；目前也没有验证到实时画面接口或
+预加载动画自动切页接口。因此屏幕仅支持手动上传，动画播放不等于随 Codex 状态自动切换。
+上传画面里的状态标签、锁定键、连接和电量只反映生成时刻。
+
+该限制针对键盘屏幕；桌面状态显示、可选 RGB 灯光联动与旋钮快捷操作仍可使用。
+当前没有统一的上传耗时或刷新率实测值，也不能将 NJ98 的结论推广到其他型号或品牌。
 
 ## 已实现的功能
 
@@ -124,7 +135,8 @@ Move-Item -LiteralPath $state -Destination $backup
 .\.venv\Scripts\python.exe -m keydous_bridge --diagnose
 ```
 
-运行测试：
+运行测试前请正常退出桥接程序；设备独占锁测试需要获取与桌面程序相同的锁。
+测试完成后再启动桥接程序，恢复旋钮快捷操作。
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
@@ -154,6 +166,14 @@ release\KeydousCodex-0.3.2-SHA256SUMS.txt
 二进制包带有 GPLv3、Python、Pillow、PyInstaller 和桌面组件许可证原文；对应源码包包含本次
 构建所需的完整仓库源码与上游测试夹具，排除 `.git`、虚拟环境、运行数据、构建目录、
 缓存和生成的压缩包。
+
+## 其他品牌适配
+
+其他品牌用户可以 fork 本项目，提供准确型号、连接方式、USB 标识及官方驱动／SDK
+资料，让 ChatGPT 或 Codex 协助修改。先核实设备接口，再分别适配灯光、旋钮和屏幕；
+屏幕需测量更新耗时后再决定是否适合实时联动。仅修改允许列表不代表完成适配。
+源码入口为 `keydous_bridge/models.py`、`keydous_bridge/iot.py`，协议说明见
+[docs/protocol-research.md](docs/protocol-research.md)。每个型号都应保存原配置并验证恢复。
 
 ## 许可证
 

@@ -1,4 +1,16 @@
-# Keyphore
+# Keydous Codex Bridge / Keyphore
+
+This repository is a fork of BarryBarrywu/Keyphore. The current Windows port targets
+Keydous NJ98 over USB; see `windows/README.md` and ADR 0009. Its screen upload is a
+manual snapshot/animation operation, not a live Codex status display: transfer and
+write latency make frequent refresh unsuitable with the current interface. RGB
+status output and knob shortcuts are separate capabilities. A Hook `Stop` means a
+turn ended, not proof that the user's goal succeeded.
+
+The glossary below describes the retained upstream NuPhy implementation. It does
+not establish capabilities or acceptance for the Keydous port.
+
+## Upstream Keyphore context
 
 Keyphore maps Codex task signals onto a dedicated NuPhy Air65 V3 lighting profile that stays off when no Codex signal is active.
 

@@ -1,10 +1,15 @@
 # Issue tracker: GitHub
 
+These are inherited upstream conventions. In a fork, first check the remote owner:
+an `origin` pointing to BarryBarrywu/Keyphore is the original project, not a fork
+tracker. Local development or commit requests do not authorize creating issues,
+comments or PRs there. Use only the destination authorized by the user.
+
 Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
 
 ## Conventions
 
-- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
+- **Create an issue**: `gh issue create --title "..." --body-file <file>`. Write multi-line bodies to a UTF-8 file first.
 - **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
 - **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
