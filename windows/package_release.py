@@ -53,6 +53,18 @@ def _copy_distribution_license(distribution_name: str, destination_name: str) ->
     shutil.copyfile(source, NOTICE_ROOT / destination_name)
 
 
+def _copy_distribution_file(distribution_name: str, source_name: str, destination_name: str) -> None:
+    distribution = importlib.metadata.distribution(distribution_name)
+    match = next((item for item in (distribution.files or [])
+                  if Path(str(item)).name == source_name), None)
+    if match is None:
+        raise RuntimeError(f"{source_name} not found in {distribution_name} metadata")
+    source = Path(distribution.locate_file(match)).resolve()
+    if not source.is_file():
+        raise RuntimeError(f"License file is missing for {distribution_name}: {source}")
+    shutil.copyfile(source, NOTICE_ROOT / destination_name)
+
+
 def prepare_notices() -> None:
     NOTICE_ROOT.mkdir(parents=True, exist_ok=True)
 
@@ -64,8 +76,10 @@ def prepare_notices() -> None:
     _copy_distribution_license("Pillow", "PILLOW-LICENSE.txt")
     _copy_distribution_license("pyinstaller", "PYINSTALLER-COPYING.txt")
     if sys.platform == "win32":
-        for name in ("pywebview", "bottle", "typing_extensions", "cffi", "pycparser", "setuptools"):
+        for name in ("pywebview", "bottle", "typing_extensions", "cffi", "pycparser", "setuptools", "six"):
             _copy_distribution_license(name, name.upper().replace("_", "-") + "-LICENSE.txt")
+        _copy_distribution_file("pystray", "COPYING", "PYSTRAY-COPYING.txt")
+        _copy_distribution_file("pystray", "COPYING.LGPL", "PYSTRAY-COPYING.LGPL.txt")
         for name in ("PROXY-TOOLS-LICENSE.txt", "WEBVIEW2-SDK-LICENSE.txt", "PYTHONNET-LICENSE.txt", "CLR-LOADER-LICENSE.txt"):
             shutil.copyfile(WINDOWS_ROOT / "licenses" / name, NOTICE_ROOT / name)
 

@@ -8,6 +8,7 @@ windows_root = Path(SPECPATH).resolve()
 
 datas = [
     (str(windows_root / "keydous_bridge" / "web"), "keydous_bridge/web"),
+    (str(windows_root.parent / "app/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png"), "keydous_bridge"),
 ]
 
 analysis = Analysis(
@@ -15,7 +16,7 @@ analysis = Analysis(
     pathex=[str(windows_root)],
     binaries=[],
     datas=datas,
-    hiddenimports=[],
+    hiddenimports=["pystray._win32"],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

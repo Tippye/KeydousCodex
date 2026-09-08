@@ -1,7 +1,7 @@
 # Keydous Codex Bridge for Windows
 
 本项目 fork 自 [BarryBarrywu/Keyphore](https://github.com/BarryBarrywu/Keyphore)，
-增加 Windows + Keydous（键斗士）NJ98 适配，当前版本 `0.3.2`。上游主要面向 macOS
+增加 Windows + Keydous（键斗士）NJ98 适配，当前版本 `0.4.0`。上游主要面向 macOS
 与 NuPhy 键盘。本 fork 是一个独立的第三方 Windows 桌面应用：主程序提供独立窗口，
 通过官方 Keydous IoT 驱动的本机服务（`127.0.0.1:3814`）访问键盘；可选的
 Codex 插件只负责把任务生命周期事件交给桥接程序。它不是 Keydous 官方驱动，也不是
@@ -23,6 +23,11 @@ Codex 插件只负责把任务生命周期事件交给桥接程序。它不是 K
 当前没有统一的上传耗时或刷新率实测值，也不能将 NJ98 的结论推广到其他型号或品牌。
 
 ## 已实现的功能
+
+0.4.0 增加 Windows 系统托盘常驻。点击窗口右上角关闭只会隐藏窗口，Codex Hook 状态、
+RGB 联动和旋钮热键继续运行。单击托盘图标或选择“打开”可恢复窗口；只有托盘“退出”
+或设置页“退出桥接程序”才会停止服务、释放热键并恢复已启用联动的 RGB。托盘初始化
+失败时应用会报告错误并退出，不会留下无法操作的隐藏进程。
 
 0.3.2 将旋钮按下改为显示／隐藏切换：Codex 在前台时最小化到任务栏，后台或已最小化时恢复并聚焦。左右旋转继续先聚焦再导航，不会最小化。沿用现有旋钮映射，无需再次改写键盘。
 
@@ -75,7 +80,8 @@ cd windows
 
 已有构建产物时，双击 `Start-Bridge.cmd` 或直接运行
 `dist\KeydousCodex\KeydousCodex.exe`。程序直接显示 Windows 桌面窗口，内部服务只监听
-本机回环地址。右上角关闭按钮或设置中的退出会结束主程序；它不会注册开机启动。
+本机回环地址。右上角关闭按钮会隐藏到系统托盘；从托盘菜单选择“退出”或点击设置中的
+“退出桥接程序”才会结束主程序。它不会注册开机启动。
 只有明确传入 `--browser` 才打开旧浏览器界面，`--no-browser` 用于无窗口运行和自动验收。
 
 首次使用建议按以下顺序操作：
@@ -158,9 +164,9 @@ node tests\test_web_state.js
 
 ```text
 dist\KeydousCodex\
-release\KeydousCodex-0.3.2-windows-x64.zip
-release\KeydousCodex-0.3.2-source.zip
-release\KeydousCodex-0.3.2-SHA256SUMS.txt
+release\KeydousCodex-0.4.0-windows-x64.zip
+release\KeydousCodex-0.4.0-source.zip
+release\KeydousCodex-0.4.0-SHA256SUMS.txt
 ```
 
 二进制包带有 GPLv3、Python、Pillow、PyInstaller 和桌面组件许可证原文；对应源码包包含本次

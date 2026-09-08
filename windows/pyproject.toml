@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "keydous-codex-bridge"
-version = "0.3.2"
+version = "0.4.0"
 description = "Local Codex pet bridge using the official Keydous IoT driver"
 license = "GPL-3.0-only"
 requires-python = ">=3.12"
-dependencies = ["Pillow==12.3.0", "pywebview==6.1; sys_platform == 'win32'", "pythonnet==3.0.5; sys_platform == 'win32'"]
+dependencies = ["Pillow==12.3.0", "pywebview==6.1; sys_platform == 'win32'", "pythonnet==3.0.5; sys_platform == 'win32'", "pystray==0.19.5; sys_platform == 'win32'"]
 
 [project.scripts]
 keydous-bridge = "keydous_bridge.__main__:main"

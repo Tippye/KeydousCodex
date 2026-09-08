@@ -26,7 +26,7 @@
 
 ## 开始使用
 
-当前 Windows 版本为 **0.3.2**，需要 Windows 10/11、WebView2 Runtime、正在运行的 Keydous IoT 驱动，以及 USB 有线连接的 NJ98。支持的精确身份为驱动型号 ID `1021`、VID/PID `3151:4015`。
+当前 Windows 版本为 **0.4.0**。关闭窗口后程序会继续在 Windows 系统托盘运行；需要停止时，请使用托盘“退出”或应用内的退出按钮。运行需要 Windows 10/11、WebView2 Runtime、正在运行的 Keydous IoT 驱动，以及 USB 有线连接的 NJ98。支持的精确身份为驱动型号 ID `1021`、VID/PID `3151:4015`。
 
 安装、Hook 接入、旋钮设置、配置恢复和构建方式见 [Windows 使用指南](windows/README.md)。本地发布包生成在 `windows/release/`，完整解压 Windows ZIP 后运行 `KeydousCodex.exe`，请保留同目录的配套文件。
 

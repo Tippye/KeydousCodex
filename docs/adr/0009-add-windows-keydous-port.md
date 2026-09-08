@@ -37,3 +37,11 @@ desktop RPC ownership, arbitrary commands, or keyboard logging are introduced.
 Hotkeys live only while the app runs; firmware mappings persist and the journal
 allows service restart and explicit restoration. Real firmware readback and a
 native input fixture are verified separately from physical rotation/Codex UI.
+
+On 2026-09-08 the Windows lifecycle was aligned with the persistent menu-bar
+control: closing the WebView2 window cancels destruction and hides it to a native
+system tray icon. The existing BridgeApp process remains the only status, hotkey,
+and hardware owner. Opening from the tray restores the same window; tray Quit and
+the in-app Quit endpoint both converge on the existing cleanup path. A missing or
+failed tray is a startup/runtime failure so the application cannot become an
+unreachable hidden owner. This changes Windows window lifecycle only.

@@ -1,6 +1,6 @@
 # Keydous Codex Bridge 设计与能力边界
 
-当前状态：Windows 0.3.2 提供独立 WebView2 桌面窗口、Codex Hook 状态、可选 RGB 联动、旋钮快捷操作和手动屏幕上传，具体证据见 [验收记录](docs/acceptance.md)。项目 fork 自 Keyphore，复用官方 Keydous IoT 驱动；macOS 适配仍为实验性源码。
+当前状态：Windows 0.4.0 提供系统托盘常驻、独立 WebView2 桌面窗口、Codex Hook 状态、可选 RGB 联动、旋钮快捷操作和手动屏幕上传，具体证据见 [验收记录](docs/acceptance.md)。项目 fork 自 Keyphore，复用官方 Keydous IoT 驱动；macOS 适配仍为实验性源码。
 
 **Keydous NJ98 的图像／动画上传耗时，刷新速度不适合频繁更新，因此当前不能实现键盘屏幕与 Codex 状态实时同步。** 已上传动画可播放，状态标签与状态栏仅为生成时刻的快照。原生状态层、低成本动态切页和实时画面接口均未验证；不以每次事件重传 GIF 的方式实现同步。RGB 和旋钮不受这一屏幕能力限制。
 

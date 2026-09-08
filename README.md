@@ -26,7 +26,7 @@ This limitation concerns **screen content**. The desktop status display, optiona
 
 ## Start here
 
-The current Windows version is **0.3.2**. It requires Windows 10/11, WebView2 Runtime, the running Keydous IoT driver and an NJ98 connected by USB. Exact supported identity: driver model ID `1021`, VID/PID `3151:4015`.
+The current Windows version is **0.4.0**. It stays active in the Windows system tray when its window is closed; use the tray Quit command or the in-app Quit button to stop it. It requires Windows 10/11, WebView2 Runtime, the running Keydous IoT driver and an NJ98 connected by USB. Exact supported identity: driver model ID `1021`, VID/PID `3151:4015`.
 
 Follow the [Windows guide](windows/README.md) for setup, Hook integration, knob controls, recovery and building. Local packages are generated in `windows/release/`; extract the full Windows ZIP and run `KeydousCodex.exe` with its companion files present.
 

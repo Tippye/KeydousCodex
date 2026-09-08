@@ -28,6 +28,9 @@ components. Their full license texts are included under
 - CFFI 2.1.1 — MIT No Attribution (`CFFI-LICENSE.txt`), https://github.com/python-cffi/cffi.
 - pycparser 3.0 — BSD-3-Clause (`PYCPARSER-LICENSE.txt`), https://github.com/eliben/pycparser.
 - setuptools runtime support — MIT (`SETUPTOOLS-LICENSE.txt`), https://github.com/pypa/setuptools.
+- pystray 0.19.5 — LGPL-3.0 (`PYSTRAY-COPYING.txt` and
+  `PYSTRAY-COPYING.LGPL.txt`), https://github.com/moses-palmer/pystray.
+- six 1.17.0 — MIT (`SIX-LICENSE.txt`), https://github.com/benjaminp/six.
 
 The Windows executable reuses the original Keyphore application icon under the
 same GPL-3.0-only license and attribution as the upstream application.

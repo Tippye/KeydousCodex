@@ -38,6 +38,6 @@ Write-Host 'Built applications:'
 Write-Host '  dist\KeydousCodex\KeydousCodex.exe'
 Write-Host '  dist\KeydousCodex\KeydousCodexHook.exe'
 Write-Host 'Release archives:'
-Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'release') -Filter 'KeydousCodex-0.3.2-*.zip' |
+Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'release') -Filter 'KeydousCodex-0.4.0-*.zip' |
     Sort-Object Name |
     ForEach-Object { Write-Host "  release\$($_.Name)" }

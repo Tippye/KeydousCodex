@@ -2,6 +2,8 @@
 
 The Windows desktop and optional browser UI follow the interaction hierarchy of the original macOS Keyphore application. Since 0.3.0, Windows starts an independent WebView2 window by default, using the original Keyphore application icon.
 
+Since 0.4.0, closing the Windows surface hides it to the system tray while the shared status service continues. The tray default action and Open command restore the same window; tray Quit and the in-app Quit command remain the explicit full-lifecycle exit paths.
+
 ## Source mapping
 
 | Original source | Windows/browser equivalent |

@@ -1,4 +1,4 @@
-"""Check the shipped EXE's real window, duplicate launch, and WM_CLOSE cleanup.
+"""Check the shipped EXE's real window, tray hiding, reopening, and explicit exit.
 
 Uses isolated data. Run on the interactive Windows desktop after quitting the app.
 """
@@ -41,6 +41,8 @@ with tempfile.TemporaryDirectory(prefix="run-",dir=parent,ignore_cleanup_errors=
     with socket.socket() as probe:
         probe.bind(("127.0.0.1",0)); port = probe.getsockname()[1]
     args = [str(exe),"--data-dir",folder,"--port",str(port)]
+    url = f"http://127.0.0.1:{port}"
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     process = subprocess.Popen(args,creationflags=subprocess.CREATE_NO_WINDOW)
     try:
         deadline = time.monotonic()+35
@@ -52,14 +54,30 @@ with tempfile.TemporaryDirectory(prefix="run-",dir=parent,ignore_cleanup_errors=
                 break
             time.sleep(.1)
         assert handle, "No native desktop window appeared"
-        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/health",timeout=10) as response:
-            assert json.load(response)["version"] == "0.3.2"
+        with opener.open(url + "/api/health",timeout=10) as response:
+            assert json.load(response)["version"] == "0.4.0"
+        with opener.open(url + "/api/bootstrap",timeout=10) as response:
+            token = json.load(response)["token"]
+        assert user32.PostMessageW(handle,0x0010,0,0), "WM_CLOSE was not delivered"
+        deadline = time.monotonic()+10
+        while own_window(process.pid) and time.monotonic() < deadline:
+            time.sleep(.1)
+        assert process.poll() is None, "Window close must leave the tray process running"
+        assert own_window(process.pid) is None, "Window close must hide the native window"
+        with opener.open(url + "/api/health",timeout=10) as response:
+            assert json.load(response)["ok"]
         duplicate = subprocess.run(args,timeout=10,creationflags=subprocess.CREATE_NO_WINDOW)
         assert duplicate.returncode == 0, "Duplicate launch must activate the first window"
-        assert process.poll() is None and own_window(process.pid)
-        assert user32.PostMessageW(handle,0x0010,0,0), "WM_CLOSE was not delivered"
-        assert process.wait(timeout=30) == 0, "Native close must exit normally"
-        print("DESKTOP_EXE_WINDOW_SINGLE_INSTANCE_CLOSE_PASS")
+        deadline = time.monotonic()+10
+        while not own_window(process.pid) and time.monotonic() < deadline:
+            time.sleep(.1)
+        assert process.poll() is None and own_window(process.pid), "Duplicate launch must reopen the hidden window"
+        request = urllib.request.Request(url + "/api/shutdown", data=b"{}",
+                                         headers={"Content-Type":"application/json", "X-Bridge-Token":token})
+        with opener.open(request,timeout=10) as response:
+            assert json.load(response)["ok"]
+        assert process.wait(timeout=30) == 0, "Explicit Quit must exit normally"
+        print("DESKTOP_EXE_TRAY_HIDE_REOPEN_EXPLICIT_QUIT_PASS")
     finally:
         if process.poll() is None:
             # This isolated verifier requested no hardware writes.
